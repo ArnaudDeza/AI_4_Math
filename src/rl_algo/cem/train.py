@@ -3,9 +3,13 @@ import numpy as np
 from time import time
 import wandb
 import torch
+import random
+from torch.utils.tensorboard import SummaryWriter
+
 
 from src.rl_algo.cem.game import generate_session
-
+from src.rl_algo.cem.utils import seed_everything, initialize_model
+from src.rl_algo.cem.select import select_elites, select_super_sessions
 
 def train_network(args, model, optimizer, train_loader, num_epochs=1):
     ''' Updates the model parameters (in place) using the given optimizer object.  Returns `None`. '''
@@ -47,7 +51,7 @@ def train_CEM_graph_agent(args):
         wandb.init(project=args.wandb_project, entity=args.wandb_entity, config=vars(args))
         wandb.watch(model)
     elif args.logger == 'tensorboard':
-        writer = SummaryWriter(log_dir=output_folder)
+        writer = SummaryWriter(log_dir=args.output_folder)
 
     # Step 4: Initialize variables
     # Generate initial buffers for super states, actions, and rewards
@@ -83,7 +87,7 @@ def train_CEM_graph_agent(args):
             
             # 3. Select elite sessions based on percentile
             tic = time.time()
-            elite_states, elite_actions = select_elites(states_batch, actions_batch, rewards_batch, percentile=percentile) #pick the sessions to learn from
+            elite_states, elite_actions = select_elites(args,states_batch, actions_batch, rewards_batch, percentile=args.percentile) #pick the sessions to learn from
             select1_time = time.time()-tic
 
             # 4. Select super sessions to survive, using a diverse selection strategy
@@ -102,7 +106,7 @@ def train_CEM_graph_agent(args):
             tic = time.time()
             train_data = torch.from_numpy(np.column_stack((elite_states, elite_actions))).float()
             train_loader = torch.utils.data.DataLoader(train_data, shuffle=True, batch_size=args.batch_size)
-            train_network(model, optimizer, train_loader,device=device)
+            train_network(model, optimizer, train_loader,device=args.device)
             fit_time = time.time() - tic
 
 
@@ -116,6 +120,10 @@ def train_CEM_graph_agent(args):
             score_time = time.time() - tic
     
     
+            print("\n" + str(i) +  ". Best individuals: " + str(np.flip(np.sort(super_rewards))))
+    
+            #uncomment below line to print out how much time each step in this loop takes. 
+            print(    "Mean reward: " + str(mean_all_reward) + "\nSessgen: " + str(sessgen_time) + ", other: " + str(randomcomp_time) + ", select1: " + str(select1_time) + ", select2: " + str(select2_time) + ", select3: " + str(select3_time) +  ", fit: " + str(fit_time) + ", score: " + str(score_time)) 
     
     
     
@@ -136,95 +144,3 @@ def train_CEM_graph_agent(args):
 
 
 
-
-
-
-
-sessgen_time = 0
-fit_time = 0
-score_time = 0
-
-
-myRand = random.randint(0,1000) #used in the filename
-
-for i in range(1000000): #1000000 generations should be plenty
-    #generate new sessions
-    #performance can be improved with joblib
-    tic = time.time()
-    sessions = generate_session(args,model) #change 0 to 1 to print out how much time each step in generate_session takes 
-    sessgen_time = time.time()-tic
-    tic = time.time()
-    
-    states_batch = np.array(sessions[0], dtype = int)
-    actions_batch = np.array(sessions[1], dtype = int)
-    rewards_batch = np.array(sessions[2])
-    states_batch = np.transpose(states_batch,axes=[0,2,1])
-    
-    states_batch = np.append(states_batch,super_states,axis=0)
-
-    if i>0:
-        actions_batch = np.append(actions_batch,np.array(super_actions),axis=0)    
-    rewards_batch = np.append(rewards_batch,super_rewards)
-        
-    randomcomp_time = time.time()-tic 
-    tic = time.time()
-
-    elite_states, elite_actions = select_elites(states_batch, actions_batch, rewards_batch, percentile=percentile) #pick the sessions to learn from
-    select1_time = time.time()-tic
-
-    tic = time.time()
-    super_sessions = select_super_sessions(states_batch, actions_batch, rewards_batch, percentile=super_percentile) #pick the sessions to survive
-    select2_time = time.time()-tic
-    
-    tic = time.time()
-    super_sessions = [(super_sessions[0][i], super_sessions[1][i], super_sessions[2][i]) for i in range(len(super_sessions[2]))]
-    super_sessions.sort(key=lambda super_sessions: super_sessions[2],reverse=True)
-    select3_time = time.time()-tic
-    
-    tic = time.time()
-    
-    train_data = torch.from_numpy(np.column_stack((elite_states, elite_actions)))
-    train_data = train_data.to(torch.float)
-    train_loader = torch.utils.data.DataLoader(train_data, shuffle=True, batch_size=32)
-    train_network(model, optimizer, train_loader)
-    fit_time = time.time()-tic
-    
-    tic = time.time()
-    
-    super_states = [super_sessions[i][0] for i in range(len(super_sessions))]
-    super_actions = [super_sessions[i][1] for i in range(len(super_sessions))]
-    super_rewards = [super_sessions[i][2] for i in range(len(super_sessions))]
-    
-    rewards_batch.sort()
-    mean_all_reward = np.mean(rewards_batch[-100:])    
-    mean_best_reward = np.mean(super_rewards)    
-
-    score_time = time.time()-tic
-    
-    print("\n" + str(i) +  ". Best individuals: " + str(np.flip(np.sort(super_rewards))))
-    
-    #uncomment below line to print out how much time each step in this loop takes. 
-    print(    "Mean reward: " + str(mean_all_reward) + "\nSessgen: " + str(sessgen_time) + ", other: " + str(randomcomp_time) + ", select1: " + str(select1_time) + ", select2: " + str(select2_time) + ", select3: " + str(select3_time) +  ", fit: " + str(fit_time) + ", score: " + str(score_time)) 
-    
-    
-    display_graph(state_to_graph(super_actions[0])[0])
-
-    if (i%20 == 1): #Write all important info to files every 20 iterations
-        with open('best_species_pickle_'+str(myRand)+'.txt', 'wb') as fp:
-            pickle.dump(super_actions, fp)
-        with open('best_species_txt_'+str(myRand)+'.txt', 'w') as f:
-            for item in super_actions:
-                f.write(str(item))
-                f.write("\n")
-        with open('best_species_rewards_'+str(myRand)+'.txt', 'w') as f:
-            for item in super_rewards:
-                f.write(str(item))
-                f.write("\n")
-        with open('best_100_rewards_'+str(myRand)+'.txt', 'a') as f:
-            f.write(str(mean_all_reward)+"\n")
-        with open('best_elite_rewards_'+str(myRand)+'.txt', 'a') as f:
-            f.write(str(mean_best_reward)+"\n")
-    if (i%200==2): # To create a timeline, like in Figure 3
-        with open('best_species_timeline_txt_'+str(myRand)+'.txt', 'a') as f:
-            f.write(str(super_actions[0]))
-            f.write("\n")

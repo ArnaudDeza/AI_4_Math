@@ -4,12 +4,17 @@ import os
 import json
 
 
+
+from src.rl_algo.cem.train import train_CEM_graph_agent
+from src.rl_algo.cem.utils import create_output_folder
+from src.rewards.score import reward_dict
+
 def parse_args():
     parser = argparse.ArgumentParser(description="Train a reinforcement learning model using cross entropy method.")
     # >>>>>> Environment arguments <<<<<<
     parser.add_argument('--n', type=int, default=12, help='Number of vertices in the graph.')
     parser.add_argument('--directed', type=bool, default=False, help='Whether the graph is directed.')
-    parser.add_argument('--reward_function', type=str, default='conj_2_10', help='Reward function to use.', choices=['conj_2_1', 'conj_2_3', 'conj_brouwer'])
+    parser.add_argument('--reward_function', type=int, default=0, help='Reward function to use.')
     parser.add_argument('--seed', type=int, default=29092000, help='Seed for random number generators.')
     parser.add_argument('--init_graph', type=str, default='empty', help='Initial graph type.', choices=['empty', 'complete',"random_tree"])
 
@@ -73,7 +78,6 @@ def parse_args():
 
 
 
-
 if __name__ == "__main__":
 
 
@@ -101,6 +105,12 @@ if __name__ == "__main__":
     args.device = device
     print("\n\n\t\t Starting training on device: ", device)
     print("\n\n\t\t Output folder: ", output_folder)
+
+
+    args.calc_score = reward_dict[args.reward_function]
+
+
+    train_CEM_graph_agent(args)
 
 
 

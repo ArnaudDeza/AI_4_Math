@@ -22,6 +22,52 @@ def seed_everything(seed):
         torch.cuda.manual_seed_all(seed)
 
 
+
+def state_to_graph(args, state, directed=False):
+    """
+    Efficiently constructs the graph from a given state and returns the NetworkX graph,
+    adjacency matrix, edge list, and degree sequence.
+
+    Args:
+        args: An object with attributes like `n` (number of nodes).
+        state: A 1D array representing the presence (1) or absence (0) of edges in the graph.
+        directed: Whether the graph should be directed.
+
+    Returns:
+        G (networkx.Graph): The constructed NetworkX graph.
+        adjMatG (numpy.ndarray): The adjacency matrix of the graph.
+        edgeListG (list of lists): The neighbor list representation of the graph.
+        Gdeg (numpy.ndarray): The degree sequence of the graph.
+    """
+    n = args.n
+    state = np.asarray(state, dtype=np.int8)
+
+    # Generate the upper triangle indices of the adjacency matrix
+    triu_indices = np.triu_indices(n, k=1)
+    
+    # Fill the adjacency matrix
+    adjMatG = np.zeros((n, n), dtype=np.int8)
+    adjMatG[triu_indices] = state
+    adjMatG += adjMatG.T  # Symmetrize for undirected graph
+
+    # Generate degree sequence directly from the adjacency matrix
+    Gdeg = adjMatG.sum(axis=1)
+
+    # Create neighbor list
+    edgeListG = [np.flatnonzero(adjMatG[i]).tolist() for i in range(n)]
+
+    # Create a NetworkX graph
+    if directed:
+        G = nx.from_numpy_array(adjMatG, create_using=nx.DiGraph)
+    else:
+        G = nx.from_numpy_array(adjMatG, create_using=nx.Graph)
+
+    return G, adjMatG, edgeListG, Gdeg
+
+
+
+
+
 def initialize_model(args, MYN, device, seed):
     # Step 0 : seed everything
     seed_everything(seed)

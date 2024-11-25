@@ -2,6 +2,8 @@ import numpy as np
 from time import time
 import torch
 
+from src.rewards.score import score_state_graph
+
 
 
 def play_game(args, actions,state_next,states,prob, step, total_score):
@@ -21,7 +23,7 @@ def play_game(args, actions,state_next,states,prob, step, total_score):
         #calculate final score
         terminal = step == args.MYN
         if terminal:
-            total_score[i] = score_state(state_next[i])
+            total_score[i] = score_state_graph(args,state_next[i])
     
         # record sessions 
         if not terminal:
