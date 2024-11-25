@@ -1,7 +1,9 @@
 import numpy as np
 import networkx as nx
+
+
+# Imports
 from src.rewards.utils import state_to_graph
-from src.rewards.conj_chemistry import *
 
 
 
@@ -62,5 +64,6 @@ def score_state_graph(args,state):
             else:
                 information['cyclomatic_number'] = -1*args.INF
 
-   
+    # Update the information dictionary with final score used
+    information['final_reward'] = score
     return score, information
