@@ -2,7 +2,7 @@ from torch import nn
 import numpy as np
 from time import time
 import wandb
-
+import torch
 
 from src.rl_algo.cem.game import generate_session
 

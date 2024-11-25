@@ -1,5 +1,6 @@
 import numpy as np
-
+import networkx as nx
+from src.rewards.utils import state_to_graph
 from src.rewards.conj_chemistry import *
 
 
@@ -30,16 +31,36 @@ reward_dict = {
 }
 
 
+
+
+
 def score_state_graph(args,state):
-    # step 0: convert state to adj_matrix
+    # step 0: convert state to adj_matrix and G i.e networkx graph
+    G, adjMatG, edgeListG, Gdeg = state_to_graph(args, state, directed = args.directed)
+    
+    # step 1: compute score
+    score, information = reward_dict[args.reward_function](G, adjMatG, args.INF)
 
-    # step 1: convnert adj_matrix to G i.e networkx graph
+    # step 2: optional reward shaping:  If the graph is a tree, add a reward
+    if args.reward__is_tree:
+        if nx.is_tree(G):
+            score += args.reward_weight_is_tree_pos
+            information['is_tree'] = True
+            information['cyclomatic_number'] = 0 
 
-    # step 2: compute score
+        else:
+            score -= args.reward_weight_is_tree_neg
+            information['is_tree'] = False
+            # Step 2a: If we know that we do want a tree, look at tree properties that we may want:
+            if args.reward__use_cylomatic:
+                # Compute the cyclomatic number (number of cycles)
+                num_components = nx.number_connected_components(G)
+                cyclomatic_number = information['num_edges'] - information['num_nodes'] + num_components
+                information['cyclomatic_number'] = cyclomatic_number
+                # you want to minimize this as tree's have a cyclomatic number of 0
+                score -= args.reward_weight_cyclomatic * cyclomatic_number
+            else:
+                information['cyclomatic_number'] = -1*args.INF
 
-    # step 3: optional reward shaping
-
-    # step 4: return score, info, etc
-
-
-    return
+   
+    return score, information

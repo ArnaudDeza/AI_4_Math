@@ -13,7 +13,24 @@ import scipy
 
 
 
+def state_to_graph(args, state, directed=False):
+    #construct the graph G
+    adjMatG = np.zeros((args.n , args.n),dtype=np.int8) #adjacency matrix determined by the state
+    edgeListG = np.zeros((args.n , args.n),dtype=np.int8) #neighbor list
+    Gdeg = np.zeros(args.n,dtype=np.int8) #degree sequence
+    count = 0
+    for i in range(args.n):
+        for j in range(i+1,args.n):
+            if state[count] == 1:
+                adjMatG[i][j] = 1
+                adjMatG[j][i] = 1
+                edgeListG[i][Gdeg[i]] = j
+                edgeListG[j][Gdeg[j]] = i
+                Gdeg[i] += 1
+                Gdeg[j] += 1
+            count += 1
 
+    return G, adjMatG, edgeListG, Gdeg
 
 
   
