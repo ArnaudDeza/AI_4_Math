@@ -27,11 +27,12 @@ def select_elites(args,states_batch, actions_batch, rewards_batch, percentile=50
                 for item in states_batch[i]:
                     elite_states.append(item.tolist())
                 for item in actions_batch[i]:
-                    elite_actions.append(item)            
+                    elite_actions.append(item)   
+            elite_rewards.append(rewards_batch[i])         
             counter -= 1
     elite_states = np.array(elite_states, dtype = int)    
     elite_actions = np.array(elite_actions, dtype = int)    
-    return elite_states, elite_actions
+    return elite_states, elite_actions,elite_rewards
     
 def select_super_sessions(args,states_batch, actions_batch, rewards_batch, percentile=90):
     """

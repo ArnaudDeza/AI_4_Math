@@ -23,7 +23,7 @@ def seed_everything(seed):
 
 
 
-def state_to_graph(args, state, directed=False):
+def state_to_graph1(args, state, directed=False):
     """
     Efficiently constructs the graph from a given state and returns the NetworkX graph,
     adjacency matrix, edge list, and degree sequence.
@@ -66,6 +66,50 @@ def state_to_graph(args, state, directed=False):
 
 
 
+import networkx as nx
+import numpy as np
+
+def state_to_graph(args, state, directed=False):
+    """
+    Constructs the graph G from the given state and returns the NetworkX graph,
+    adjacency matrix, edge list, and degree sequence.
+    
+    Args:
+        args: An object with attributes like `n` (number of nodes).
+        state: A list or array representing the edge states (1 for edge, 0 for no edge).
+        directed: Whether the graph should be directed.
+
+    Returns:
+        G (networkx.Graph): The constructed NetworkX graph.
+        adjMatG (numpy.ndarray): The adjacency matrix of the graph.
+        edgeListG (numpy.ndarray): The neighbor list representation of the graph.
+        Gdeg (numpy.ndarray): The degree sequence of the graph.
+    """
+    # Initialize adjacency matrix, edge list, and degree sequence
+    adjMatG = np.zeros((args.n, args.n), dtype=np.int8)  # Adjacency matrix
+    edgeListG = np.zeros((args.n, args.n), dtype=np.int8)  # Neighbor list
+    Gdeg = np.zeros(args.n, dtype=np.int8)  # Degree sequence
+
+    # Populate adjacency matrix and edge list
+    count = 0
+    for i in range(args.n):
+        for j in range(i + 1, args.n):
+            if state[count] == 1:
+                adjMatG[i][j] = 1
+                adjMatG[j][i] = 1
+                edgeListG[i][Gdeg[i]] = j
+                edgeListG[j][Gdeg[j]] = i
+                Gdeg[i] += 1
+                Gdeg[j] += 1
+            count += 1
+
+    # Create a NetworkX graph from the adjacency matrix
+    if directed:
+        G = nx.DiGraph(adjMatG)
+    else:
+        G = nx.Graph(adjMatG)
+
+    return G, adjMatG, edgeListG, Gdeg
 
 
 def initialize_model(args, MYN, device, seed):
@@ -129,3 +173,10 @@ def display_graph(adjMatG):
 
 
 
+def create_output_folder(args):
+    directed= "directed" if args.directed else "undirected"
+    timestamp = datetime.datetime.now().strftime('%Y%m%d_%H%M%S')
+    folder_name = f"{args.base_folder}/{args.reward_function}__{directed}_n_{args.n}_{args.model}/cem_run__seed_{args.seed}_{timestamp}_id_{args.current_idx}"
+    output_folder = os.path.join("results", folder_name)
+    os.makedirs(output_folder, exist_ok=True)
+    return output_folder

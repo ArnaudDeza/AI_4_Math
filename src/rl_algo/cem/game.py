@@ -1,5 +1,5 @@
 import numpy as np
-from time import time
+import time
 import torch
 
 from src.rewards.score import score_state_graph
@@ -7,6 +7,7 @@ from src.rewards.score import score_state_graph
 
 
 def play_game(args, actions,state_next,states,prob, step, total_score):
+    infos = {}
     for i in range(args.n_sessions):
         if np.random.rand() < prob[i]:
             action = 1
@@ -23,13 +24,14 @@ def play_game(args, actions,state_next,states,prob, step, total_score):
         #calculate final score
         terminal = step == args.MYN
         if terminal:
-            total_score[i] = score_state_graph(args,state_next[i])
+            total_score[i],info = score_state_graph(args,state_next[i])
+            infos["session_{}".format(i)] = info
     
         # record sessions 
         if not terminal:
             states[i,:,step] = state_next[i]
         
-    return actions, state_next,states, total_score, terminal 
+    return actions, state_next,states, total_score, terminal,infos
 
 
 
@@ -50,15 +52,16 @@ def generate_session(args,agent):
     
     while (True):
         step += 1        
-        tic = time.time()
-        prob = agent(torch.from_numpy(states[:,:,step-1]).to(torch.float))
-        prob = prob.detach().cpu().numpy()
 
+        tic = time.time()
+        state_tensor = torch.from_numpy(states[:, :, step - 1]).float().to(args.device)
+        prob = agent(state_tensor).detach().cpu().numpy()  # Detach and move predictions to CPU
         pred_time += time.time()-tic
         tic = time.time()
-        actions, state_next, states, total_score, terminal = play_game( args.n_sessions, actions,state_next, states,prob, step, total_score)
+
+        actions, state_next, states, total_score, terminal,infos = play_game( args, actions,state_next, states,prob, step, total_score)
         play_time += time.time()-tic
         
         if terminal:
             break
-    return states, actions, total_score
+    return (states, actions, total_score), infos

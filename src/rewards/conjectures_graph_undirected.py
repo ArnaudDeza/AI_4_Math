@@ -1,9 +1,9 @@
 from src.rewards.utils import *
 
 
-def conj_0_score(G, adjMatG, INF = 10000):
+def conj_10_score(G, adjMatG, INF = 10000):
     '''
-    Score function for conjecture XXXXX
+    Score function for conjecture 10
     Conjecture: (Aouchiche, 2006). Let \( G \) be a connected graph on \( n \geq 3 \) vertices. Then
     R(G) + \alpha(G) \leq n - 1 + \sqrt{n - 1}.
     '''
@@ -19,7 +19,7 @@ def conj_0_score(G, adjMatG, INF = 10000):
     info['score'] = score
     return score, info
 
-def conj_1_score(G, adjMatG, INF = 10000):
+def conj_9_score(G, adjMatG, INF = 10000):
     '''
     Score function for conjecture 9
     Conjecture: 
@@ -37,7 +37,7 @@ def conj_1_score(G, adjMatG, INF = 10000):
     info['score'] = score
     return score, info
 
-def conj_2_score(G, adjMatG, INF = 10000):
+def conj_8_score(G, adjMatG, INF = 10000):
     '''
     Score function for conjecture 8
     Conjecture: 
@@ -61,7 +61,7 @@ def conj_2_score(G, adjMatG, INF = 10000):
     return score, info
  
 
-def conj_3_score(G, adjMatG, INF = 10000):
+def conj_7_score(G, adjMatG, INF = 10000):
     '''
     Score function for conjecture 7
     Conjecture: 
@@ -81,7 +81,7 @@ def conj_3_score(G, adjMatG, INF = 10000):
     info['score'] = score
     return score, info
 
-def conj_4_score(G, adjMatG, INF = 10000):
+def conj_6_score(G, adjMatG, INF = 10000):
     '''
     Score function for conjecture 6
     Conjecture: 
@@ -123,7 +123,7 @@ def conj_5_score(G, adjMatG, INF = 10000):
 
 
 
-def conj_6_score(G, adjMatG, INF = 10000):
+def conj_4_score(G, adjMatG, INF = 10000):
     '''
     Score function for conjecture 4
     Conjecture: 
@@ -150,7 +150,7 @@ def conj_6_score(G, adjMatG, INF = 10000):
 
 
 
-def conj_7_score(G, adjMatG, INF = 10000):
+def conj_3_score(G, adjMatG, INF = 10000):
     '''
     Score function for conjecture 3
     Conjecture: 
@@ -172,7 +172,7 @@ def conj_7_score(G, adjMatG, INF = 10000):
     info['score'] = score
     return score, info
 
-def conj_8_score(G, adjMatG, INF = 10000):
+def conj_2_score(G, adjMatG, INF = 10000):
     '''
     Score function for conjecture 2
     Conjecture: 
@@ -194,7 +194,7 @@ def conj_8_score(G, adjMatG, INF = 10000):
     info['score'] = score
     return score, info
 
-def conj_9_score(G, adjMatG, INF = 10000):
+def conj_1_score(G, adjMatG, INF = 10000):
     '''
     Score function for conjecture 1
     Conjecture: 
@@ -243,26 +243,6 @@ def conj_9_score(G, adjMatG, INF = 10000):
 
 
 
-
-
-
-
-
-def conj_10_score(G, adjMatG, INF = 10000):
-    '''
-    Score function for conjecture XXXXX
-    Conjecture: 
-    
-    '''
-    info = {}
-    if not nx.is_connected(G):
-        return -INF,info
-    
-    info[''] = ...
-    info[''] = ...
-    score = ...
-    info['score'] = score
-    return score, info
 
 
 

@@ -1,7 +1,7 @@
 import torch
 import torch.nn as nn
 
-class LogisticRegressionModel(nn.Module):
+class LR(nn.Module):
     def __init__(self, num_edges):
         """
         Logistic Regression model for sequential graph construction.
@@ -11,7 +11,7 @@ class LogisticRegressionModel(nn.Module):
                 args.model_args: Dictionary with architecture-related parameters:
                     - None required for logistic regression.
         """
-        super(LogisticRegressionModel, self).__init__()
+        super(LR, self).__init__()
         self.E = num_edges  # Number of edges E
 
         # Linear layer without bias

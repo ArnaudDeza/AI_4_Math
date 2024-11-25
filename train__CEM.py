@@ -12,9 +12,9 @@ from src.rewards.score import reward_dict
 def parse_args():
     parser = argparse.ArgumentParser(description="Train a reinforcement learning model using cross entropy method.")
     # >>>>>> Environment arguments <<<<<<
-    parser.add_argument('--n', type=int, default=12, help='Number of vertices in the graph.')
+    parser.add_argument('--n', type=int, default=11, help='Number of vertices in the graph.')
     parser.add_argument('--directed', type=bool, default=False, help='Whether the graph is directed.')
-    parser.add_argument('--reward_function', type=int, default=0, help='Reward function to use.')
+    parser.add_argument('--reward_function', type=int, default=10, help='Reward function to use.')
     parser.add_argument('--seed', type=int, default=29092000, help='Seed for random number generators.')
     parser.add_argument('--init_graph', type=str, default='empty', help='Initial graph type.', choices=['empty', 'complete',"random_tree"])
 
@@ -52,7 +52,7 @@ def parse_args():
     parser.add_argument('--logger', type=str, default='tensorboard', choices=['wandb', 'tensorboard'], help='Logger to use.')
     parser.add_argument('--wandb_entity', type=str, default='dezaarna', help='Wandb entity.')
     parser.add_argument('--wandb_project', type=str, default='CEM_runs', help='Wandb project name.')
-    parser.add_argument('--check_every_k__best_graphs', type=int, default=100, help='Save best graphs every k iterations.')
+    parser.add_argument('--save_every_k_iters', type=int, default=100, help='Save best graphs every k iterations.')
     parser.add_argument('--print_every_k', type=int, default=5, help='Print progress every k iterations.')
     parser.add_argument('--print_on_improvement_of_reward', type=bool, default=True, help='Print progress when reward improves.')
 
